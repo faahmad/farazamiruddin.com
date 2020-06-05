@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "farazamiruddin-prod",
     "public": "public",
     "ignore": [
       "firebase.json",
