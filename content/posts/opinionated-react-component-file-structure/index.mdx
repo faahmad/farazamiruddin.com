@@ -1,0 +1,88 @@
+---
+title: Opinionated React - Component File Structure
+date: 2019-02-24
+---
+
+# Intro
+I’ve been working with React for over four years. During this time, I’ve formed some opinions on how I think applications should be. This is part 2 in the series of such opinionated pieces.
+
+# Component File Structure
+I have a convention that I use when creating component files. I like the put the things that I find the most important at the top, and anything that is not necessary for someone using my component to know at the bottom.
+
+# File Structure
+```tsx
+import * as React from "react";
+import { gql } from "apollo-boost";
+import { useQuery } from "@apollo/react-hooks";
+import { Movie } from "../types/Movie";
+
+const MOVIE_LIST_QUERY = gql`
+  query MovieListQuery($movieListId: ID!) {
+    movieList(movieListId: $movieListId) {
+      id
+      name
+      movies {
+        id
+        title
+        releaseDate
+      }
+    }
+  }
+`;
+
+interface MovieListProps {
+  movieListId: string;
+}
+
+export const MovieList: React.FC<MovieListProps> = ({ movieListId }) => {
+  const { data, loading } = useQuery(MOVIE_LIST_QUERY, {
+    variables: { movieListId }
+  });
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div>
+      <h1>{data.movieList.name}</h1>
+      <ul>
+        {data.movieList.movies.map((movie: Movie) => (
+          <MovieListItem key={movie.id} {...movie} />
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+const MovieListItem: React.FC<Movie> = ({ title, releaseDate }) => {
+  return (
+    <div>
+      <h3>{title}</h3>
+      <p>{releaseDate}</p>
+    </div>
+  );
+};
+```
+
+When I use a component, I ask myself these questions:
+- Is this component fetching any data?
+- What are the props that this component is expecting?
+- What does this component render?
+
+This is why I lay my files out this way:
+
+**Queries first:** The first thing I want to see is what external data is this component using, if any. That’s why I put my GraphQL calls at the top of the file. When I first open the file, I can see that this component is fetching a list of movies, and I know what the shape of that response will be. I put my GraphQL queries in the same file as the component consuming them, because I don’t want to have to jump between files to know what’s being fetched.
+
+**Type definitions:** I follow the data dependencies with the type definitions for the component. This way I know what props this component needs for me to pass in.
+
+**The actual component:** This is when I place the code for my component. After I know what data it is fetching, and what props it needs, I want to know what JSX is actually being rendered. I use a named export and export the component inline so that it is easier to change the name of the component if needed.
+
+**Sub components:** [In my previous post](/opinionated-react-folder-structure-and-file-naming), I mentioned that I like to have any sub-components related to the current component in the same file. I place these after the main component, since it is not required for a user to know about these components at all.
+
+# Wrapping Up
+This is the 2nd installment in a series of pieces I will be writing. If you enjoyed this, please comment below. What else would you like me to cover? As always, I’m open to feedback and recommendations.
+
+Thanks for reading.
+
+P.S. If you haven’t already, be sure to check out my first post in this series, [An Opinionated Guide to React: Folder Structure and File Naming.](/opinionated-react-folder-structure-and-file-naming)
