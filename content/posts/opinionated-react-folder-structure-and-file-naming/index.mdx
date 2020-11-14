@@ -1,0 +1,173 @@
+---
+title: Opinionated React - Folder Structure & File Naming
+date: 2019-02-16
+image: ./sunset-beach.jpg
+imageAlt: A beach at sunset with crashing waves.
+---
+
+## Intro
+
+I've been working with React for over 4 years. During this time, I've formed some opinions on how I think applications should be. This is part 1 in a collection of those opinions.
+
+## Folder Structure & File Naming
+
+I have gone through many iterations of folder structure in the applications that I worked on. The one that I have found scales the best is to have flat folders and long file names. Since I use VSCode, it is easy to search for files, so the longer the name, the better. Here's how I layout most of my React applications.
+
+### Folder Structure
+
+```
+/react-app
+  /build
+  /node_modules
+  /public
+  /src
+    /assets
+    /components
+    /contexts
+    /lib
+    /pages
+    /services
+    /styles
+    AppRoutes.tsx
+    index.tsx
+    react-app-env.d.ts
+
+  package.json
+  README.md
+  tsconfig.json
+  yarn.lock
+```
+
+Here's a quick overview of what are in these folders.
+
+- **/assets** - images, logos.
+
+- **/components** - components that are shared between multiple pages.
+
+- **/contexts** - I keep all of the context components in a separate folder, to not confuse them with plain old react components. A common context I like to implement is UserAuthContext.tsx.
+
+- **/lib** - When using a 3rd party library, let's say like Firebase for example, I like to put all of the initialization in a folder called lib. I'll then export the instance of that initialized library.
+
+```jsx
+import firebase from "firebase/app"
+
+firebase.initializeApp({
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+})
+
+export default firebase
+```
+
+- **/pages** - Pages are also react components, but they represent a page or screen of an app. These map 1:1 with a route in the AppRoutes.tsx file.
+
+- **/services** - All of my api methods are put in a folder called services. I like to do this so that I don't put the business logic of an API call directly into a component, and so that any component can easily reference a service that it needs.
+
+- **/styles** - I very rarely write custom css, instead opting to use a framework like tailwindcss. This styles folder is where my generated styles and any custom css goes.
+
+- **AppRoutes** - This file contains all the routes of my application. I've been using react-router for a while, and I like to have one file that contains all my routes so that I can see it all at a glance.
+
+```jsx
+import React from "react"
+import { Switch, BrowserRouter, Route } from "react-router-dom"
+import { useAuthContext } from "./contexts/AuthContext"
+import { Navbar } from "./components/Navbar"
+import { LandingPage } from "./pages/LandingPage"
+import { DashboardPage } from "./pages/DashboardPage"
+
+export const AppRoutes: React.FC = () => {
+  const authAccount = useAuthContext()
+
+  return (
+    <BrowserRouter>
+      <div className="mt-8 w-4/5 max-w-6xl m-auto">
+        <Navbar />
+      </div>
+      <Switch>
+        {authAccount ? (
+          <AuthenticatedAppRoutes />
+        ) : (
+          <UnauthenticatedAppRoutes />
+        )}
+      </Switch>
+    </BrowserRouter>
+  )
+}
+
+const UnauthenticatedAppRoutes: React.FC = () => {
+  return (
+    <React.Fragment>
+      <Route exact path="/" component={LandingPage} />
+    </React.Fragment>
+  )
+}
+
+const AuthenticatedAppRoutes: React.FC = () => {
+  return (
+    <React.Fragment>
+      <Route exact path="/" component={DashboardPage} />
+    </React.Fragment>
+  )
+}
+```
+
+- **index.tsx** - This is your typical index file, where you render your React app to the document.
+
+### File Naming
+
+My rule of thumb is the longer and more descriptive the file name, the better. For files that that export React components I use PascalCase, for everything else I use dash-case.
+
+```
+# PascalCase
+/components/NavBar.tsx
+/contexts/UserAuthContext.tsx
+/pages/DashboardPage.tsx
+# dash-case
+/services/auth-service.ts
+/lib/apollo-client.ts
+```
+
+I always prefer named exports instead of default exports. This makes it easier to search what I'm looking for in my editor.
+
+## Updates
+
+I received some questions about this post, here are my responses:
+
+**Would be very interesting to see the structure inside of /components. Is there any nesting? A folder for each component with styles/test/... next to the component file itself?**
+
+I don't use any nesting in any of the folders. I also typically don't have a separate styles file, since I use frameworks like tailwind or bootstrap. The shape of of my components folder is like so:
+
+```
+/components
+  /__tests__
+    Button.test.tsx
+Button.tsx
+```
+
+**What do you do with one-off components? For example, a Contacts.jsx page has a ContactList component?**
+
+I will split up my page into sub-components, all within the same file as the page.
+
+```jsx
+import * as React from 'react'
+
+export const ContactsPage: React.FC = () => {
+  return (
+    <div>
+      <h1>Contacts</h1>
+      <ContactsList />
+    </div>
+  )
+}
+
+const ContactsList: React.FC = () => { ... }
+```
+
+## Wrapping Up
+
+This is the first post in a series of posts I will be doing. If you enjoyed this, please give me some hearts and leave a comment below. What else would you
+
+As always, I'm open to recommendations. Reach out to me on twitter.
+
+Thanks for reading.
